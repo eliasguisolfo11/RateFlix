@@ -14,6 +14,7 @@ async function getDb() {
 
 // Inicializa las tablas y el usuario por defecto (admin/123)
 // Se ejecuta una sola vez al arrancar la aplicación
+// Incluye migración para agregar columna username en tablas viejas
 export async function initDatabase() {
   const database = await getDb();
   await database.execAsync('PRAGMA foreign_keys = ON;');
@@ -38,6 +39,10 @@ export async function initDatabase() {
       FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE
     );
   `);
+  // Migración: agrega columna username si la tabla fue creada antes de tenerla
+  try {
+    await database.runAsync('ALTER TABLE users ADD COLUMN username TEXT DEFAULT ""');
+  } catch (_) {} // La columna ya existe, ignorar
   const existing = await database.getFirstAsync('SELECT id FROM users WHERE email = ?', 'admin');
   if (!existing) {
     await database.runAsync(
@@ -65,7 +70,7 @@ export async function createUser(username, email, password) {
     if (e.message.includes('UNIQUE')) {
       return { success: false, message: 'El email ya está registrado' };
     }
-    return { success: false, message: 'Error al crear usuario' };
+    return { success: false, message: `Error al crear usuario: ${e.message}` };
   }
 }
 
