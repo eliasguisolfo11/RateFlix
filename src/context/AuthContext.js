@@ -1,3 +1,6 @@
+// Contexto global de autenticación
+// Provee estado de login, usuario actual y funciones signIn/register/signOut
+// Se inicializa la base de datos SQLite al montar el provider
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { findUser, createUser, initDatabase } from '../services/database';
 
@@ -12,6 +15,7 @@ export function AuthProvider({ children }) {
     initDatabase().then(() => setReady(true));
   }, []);
 
+  // Autentica usuario contra SQLite, setea estado global si es válido
   const signIn = async (email, password) => {
     const found = await findUser(email, password);
     if (found) {
@@ -22,10 +26,12 @@ export function AuthProvider({ children }) {
     return { success: false, message: 'Credenciales inválidas' };
   };
 
+  // Registra un nuevo usuario en SQLite sin auto-loguear
   const register = async (username, email, password) => {
     return await createUser(username, email, password);
   };
 
+  // Cierra sesión y limpia el estado
   const signOut = () => {
     setUser(null);
     setIsLoggedIn(false);
@@ -38,8 +44,9 @@ export function AuthProvider({ children }) {
   );
 }
 
+// Hook personalizado para acceder al contexto de autenticación
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  if (!context) throw new Error('useAuth debe usarse dentro de AuthProvider');
   return context;
 }

@@ -1,3 +1,6 @@
+// Punto de entrada de la aplicación
+// Configura navegación con Stack (Login / MainTabs) y Bottom Tabs (Películas, Series, Favoritos)
+// Protege las rutas principales detrás del estado de autenticación
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -11,6 +14,7 @@ import FavoritesScreen from './src/screens/FavoritesScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Navegación con pestañas inferiores para las secciones principales de contenido
 function MainTabs() {
   return (
     <Tab.Navigator
@@ -28,6 +32,7 @@ function MainTabs() {
   );
 }
 
+// Navegación principal: muestra Login si no está autenticado, MainTabs si lo está
 function Navigation() {
   const { isLoggedIn } = useAuth();
   return (
@@ -41,6 +46,7 @@ function Navigation() {
   );
 }
 
+// Componente raíz: envuelve toda la app con AuthProvider y NavigationContainer
 export default function App() {
   return (
     <AuthProvider>

@@ -1,3 +1,6 @@
+// Pantalla de listado de películas
+// Filtro por año (2020-2026) con selector desplegable, grid de 2 columnas
+// Muestra ActivityIndicator mientras carga, mensaje de error si falla la API
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, FlatList, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { fetchMoviesByYear } from '../services/api';

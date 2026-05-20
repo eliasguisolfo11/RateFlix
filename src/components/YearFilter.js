@@ -1,3 +1,5 @@
+// Selector desplegable de año para filtrar películas y series
+// Muestra un Modal con años disponibles (2020 a 2026) y marca el año activo
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet } from 'react-native';
 

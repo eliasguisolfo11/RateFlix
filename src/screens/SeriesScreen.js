@@ -1,3 +1,6 @@
+// Pantalla de listado de series
+// Filtro por año (2020-2026) con selector desplegable, grid de 2 columnas
+// Análoga a MoviesScreen pero usando item.name para el título
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, FlatList, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { fetchSeriesByYear } from '../services/api';

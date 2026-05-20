@@ -1,3 +1,5 @@
+// Tarjeta visual para películas y series
+// Muestra poster, título truncado, rating y botón de favorito
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { TMDB_IMAGE_URL } from '../config/tmdbConfig';
@@ -8,12 +10,14 @@ export default function MediaCard({ title, posterPath, rating, mediaId, mediaTyp
   const { user } = useAuth();
   const [fav, setFav] = useState(false);
 
+  // Al montar, verifica si este contenido ya está en favoritos del usuario
   useEffect(() => {
     if (user && mediaId) {
       isFavorite(user.email, mediaId).then(setFav);
     }
   }, [user, mediaId]);
 
+  // Agrega o quita el contenido de favoritos según el estado actual
   const toggleFav = async () => {
     if (fav) {
       await removeFavorite(user.email, mediaId);

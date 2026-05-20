@@ -1,7 +1,10 @@
+// Módulo de persistencia local con SQLite (expo-sqlite)
+// Almacena usuarios y favoritos de forma permanente en el dispositivo
 import * as SQLite from 'expo-sqlite';
 
 let db = null;
 
+// Retorna la conexión a la base de datos, creándola si es la primera vez
 async function getDb() {
   if (!db) {
     db = await SQLite.openDatabaseAsync('rateflix.db');
@@ -9,6 +12,8 @@ async function getDb() {
   return db;
 }
 
+// Inicializa las tablas y el usuario por defecto (admin/123)
+// Se ejecuta una sola vez al arrancar la aplicación
 export async function initDatabase() {
   const database = await getDb();
   await database.execAsync('PRAGMA foreign_keys = ON;');
@@ -44,6 +49,8 @@ export async function initDatabase() {
   }
 }
 
+// Crea un nuevo usuario en la base de datos
+// Retorna { success: true } o { success: false, message }
 export async function createUser(username, email, password) {
   const database = await getDb();
   try {
@@ -62,6 +69,8 @@ export async function createUser(username, email, password) {
   }
 }
 
+// Busca un usuario por email y contraseña para autenticación
+// Retorna el usuario o null si no coincide
 export async function findUser(email, password) {
   const database = await getDb();
   const user = await database.getFirstAsync(
@@ -72,6 +81,9 @@ export async function findUser(email, password) {
   return user || null;
 }
 
+// Agrega un favorito para el usuario, o lo reemplaza si ya existe
+// @param {string} userEmail - Email del usuario
+// @param {object} media - Objeto con id, title, poster_path, vote_average, media_type
 export async function addFavorite(userEmail, media) {
   const database = await getDb();
   try {
@@ -91,6 +103,7 @@ export async function addFavorite(userEmail, media) {
   }
 }
 
+// Elimina un favorito específico del usuario
 export async function removeFavorite(userEmail, mediaId) {
   const database = await getDb();
   await database.runAsync(
@@ -100,6 +113,7 @@ export async function removeFavorite(userEmail, mediaId) {
   );
 }
 
+// Obtiene todos los favoritos de un usuario, ordenados del más reciente al más antiguo
 export async function getFavorites(userEmail) {
   const database = await getDb();
   const rows = await database.getAllAsync(
@@ -109,6 +123,8 @@ export async function getFavorites(userEmail) {
   return rows;
 }
 
+// Verifica si un contenido ya está marcado como favorito por el usuario
+// Retorna true/false
 export async function isFavorite(userEmail, mediaId) {
   const database = await getDb();
   const row = await database.getFirstAsync(

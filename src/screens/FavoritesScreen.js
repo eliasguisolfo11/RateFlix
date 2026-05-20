@@ -1,3 +1,6 @@
+// Pantalla de favoritos del usuario autenticado
+// Recarga automáticamente cada vez que se enfoca el tab (navigation focus)
+// Muestra los contenidos guardados en SQLite con el mismo MediaCard
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, FlatList, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';

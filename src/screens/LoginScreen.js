@@ -1,3 +1,6 @@
+// Pantalla de login y registro
+// Toggle entre modo login (email + contraseña) y registro (usuario + email + contraseña)
+// Al registrarse muestra alerta de éxito sin auto-loguear
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
