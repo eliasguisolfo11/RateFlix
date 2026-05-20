@@ -1,55 +1,62 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, FlatList, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { fetchMovies2026 } from '../services/api';
+import { fetchMoviesByYear } from '../services/api';
 import MediaCard from '../components/MediaCard';
+import YearFilter from '../components/YearFilter';
 
 export default function MoviesScreen() {
+  const [year, setYear] = useState(2026);
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchMovies2026()
-      .then(setMovies)
-      .catch(setError)
-      .finally(() => setLoading(false));
+  const load = useCallback(async (y) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchMoviesByYear(y);
+      setMovies(data);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) {
-    return (
-      <ActivityIndicator
-        size="large"
-        color="#e50914"
-        style={{ flex: 1, backgroundColor: '#121212' }}
-      />
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.error}>Error al cargar películas</Text>
-      </View>
-    );
-  }
+  useEffect(() => {
+    load(year);
+  }, [year, load]);
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={movies}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={2}
-        renderItem={({ item }) => (
-          <MediaCard
-            title={item.title}
-            posterPath={item.poster_path}
-            rating={item.vote_average}
-            mediaId={item.id}
-            mediaType="movie"
-          />
-        )}
-        contentContainerStyle={{ padding: 6 }}
-      />
+      <YearFilter selectedYear={year} onSelect={setYear} />
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color="#e50914"
+          style={{ flex: 1, backgroundColor: '#121212' }}
+        />
+      ) : error ? (
+        <View style={styles.center}>
+          <Text style={styles.error}>Error al cargar películas</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={movies}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={2}
+          renderItem={({ item }) => (
+            <MediaCard
+              title={item.title}
+              posterPath={item.poster_path}
+              rating={item.vote_average}
+              mediaId={item.id}
+              mediaType="movie"
+            />
+          )}
+          contentContainerStyle={{ padding: 6 }}
+        />
+      )}
     </View>
   );
 }
