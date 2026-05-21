@@ -50,6 +50,12 @@ export default function FavoritesScreen() {
     );
   }
 
+  const handleToggleFav = (newFav, mediaId) => {
+    if (!newFav) {
+      setFavorites((prev) => prev.filter((item) => item.media_id !== mediaId));
+    }
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -61,6 +67,9 @@ export default function FavoritesScreen() {
             title={item.title}
             posterPath={item.poster_path}
             rating={item.rating}
+            mediaId={item.media_id}
+            mediaType={item.media_type}
+            onToggleFav={handleToggleFav}
           />
         )}
         contentContainerStyle={{ padding: 6 }}

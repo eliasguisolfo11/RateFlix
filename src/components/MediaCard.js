@@ -6,7 +6,7 @@ import { TMDB_IMAGE_URL } from '../config/tmdbConfig';
 import { useAuth } from '../context/AuthContext';
 import { addFavorite, removeFavorite, isFavorite } from '../services/database';
 
-export default function MediaCard({ title, posterPath, rating, mediaId, mediaType }) {
+export default function MediaCard({ title, posterPath, rating, mediaId, mediaType, onToggleFav }) {
   const { user } = useAuth();
   const [fav, setFav] = useState(false);
 
@@ -22,6 +22,7 @@ export default function MediaCard({ title, posterPath, rating, mediaId, mediaTyp
     if (fav) {
       await removeFavorite(user.email, mediaId);
       setFav(false);
+      if (onToggleFav) onToggleFav(false, mediaId);
     } else {
       await addFavorite(user.email, {
         id: mediaId,
@@ -31,6 +32,7 @@ export default function MediaCard({ title, posterPath, rating, mediaId, mediaTyp
         media_type: mediaType,
       });
       setFav(true);
+      if (onToggleFav) onToggleFav(true, mediaId);
     }
   };
 

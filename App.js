@@ -10,6 +10,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import MoviesScreen from './src/screens/MoviesScreen';
 import SeriesScreen from './src/screens/SeriesScreen';
 import FavoritesScreen from './src/screens/FavoritesScreen';
+import AccountScreen from './src/screens/AccountScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -28,6 +29,7 @@ function MainTabs() {
       <Tab.Screen name="Películas" component={MoviesScreen} />
       <Tab.Screen name="Series" component={SeriesScreen} />
       <Tab.Screen name="Favoritos" component={FavoritesScreen} />
+      <Tab.Screen name="Cuenta" component={AccountScreen} />
     </Tab.Navigator>
   );
 }
