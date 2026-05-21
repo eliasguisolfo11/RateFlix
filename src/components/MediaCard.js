@@ -10,14 +10,12 @@ export default function MediaCard({ title, posterPath, rating, mediaId, mediaTyp
   const { user } = useAuth();
   const [fav, setFav] = useState(false);
 
-  // Al montar, verifica si este contenido ya está en favoritos del usuario
   useEffect(() => {
     if (user && mediaId) {
       isFavorite(user.email, mediaId).then(setFav);
     }
   }, [user, mediaId]);
 
-  // Agrega o quita el contenido de favoritos según el estado actual
   const toggleFav = async () => {
     if (fav) {
       await removeFavorite(user.email, mediaId);
