@@ -1,6 +1,6 @@
 # RateFlix
 
-Aplicación móvil estilo Netflix desarrollada con React Native / Expo. Consume la API de TMDB para mostrar las películas y series mejor puntuadas del año 2026.
+Aplicación móvil estilo Netflix desarrollada con React Native / Expo. Consume la API de TMDB para descubrir películas y series, con autenticación local, favoritos, watchlist y ratings personalizados.
 
 ## Stack
 
@@ -12,33 +12,93 @@ Aplicación móvil estilo Netflix desarrollada con React Native / Expo. Consume 
 
 ## Funcionalidades
 
+### Núcleo
 - Autenticación con SQLite (login y registro de usuarios)
 - Usuario por defecto: `admin` / `123`
-- Exploración de películas y series de 2026 ordenadas por rating
-- Grid de 2 columnas con poster, título y puntuación
-- Guardar favoritos por usuario (persistencia local)
 - Navegación protegida (requiere login)
 - Interfaz oscura estilo Netflix (#121212, acento #e50914)
+
+### Exploración
+- Películas y series filtradas por año (2020-2026) y género
+- Grid de 2 columnas con poster, título, rating y año
+- Scroll infinito (carga más resultados al hacer scroll)
+- Búsqueda por título con debounce y paginación
+- Filtro por género con chips seleccionables
+
+### Detalle
+- Pantalla de detalle con póster, sinopsis, reparto, director
+- Rating de TMDB + rating personal del usuario (1-5 estrellas)
+- Botón "Ver Tráiler" que abre YouTube
+- Marcador de favoritos ❤️
+- Watchlist: "Quiero ver" 📌 y "Ya visto" ✅
+
+### Gestión personal
+- Favoritos persistentes por usuario
+- Watchlist con tabs: Favoritos | Ver después | Vistos
+- Ratings personalizados (estrellas) visibles en tarjetas
+- Cuenta con cierre de sesión
+
+### UX
+- Estados de carga con skeletons (shimmer animation)
+- Scroll infinito con spinner al final de la lista
+- Badge de año en tarjetas
+- Sombra y elevación en tarjetas
 
 ## Estructura del proyecto
 
 ```
 src/
 ├── components/
-│   └── MediaCard.js          # Tarjeta con poster, rating y botón de favorito
+│   ├── GenreFilter.js          # Chips de géneros seleccionables
+│   ├── MediaCard.js            # Tarjeta con poster, rating, año y favorito
+│   ├── MediaCardSkeleton.js    # Skeleton con shimmer animation
+│   ├── SearchBar.js            # Input de búsqueda
+│   ├── StarRating.js           # Rating de 5 estrellas interactivo
+│   └── YearFilter.js           # Selector desplegable de año
 ├── config/
-│   └── tmdbConfig.js         # URLs base de TMDB
+│   └── tmdbConfig.js           # URLs base de TMDB
 ├── context/
-│   └── AuthContext.js        # Contexto de autenticación global
+│   └── AuthContext.js          # Contexto de autenticación global
+├── hooks/
+│   └── useMedia.js             # Hook reutilizable para fetching
 ├── screens/
-│   ├── LoginScreen.js        # Login y registro de usuarios
-│   ├── MoviesScreen.js       # Listado de películas 2026
-│   ├── SeriesScreen.js       # Listado de series 2026
-│   └── FavoritesScreen.js    # Favoritos del usuario
+│   ├── AccountScreen.js        # Perfil y cierre de sesión
+│   ├── DetailScreen.js         # Detalle completo + watchlist + rating
+│   ├── FavoritesScreen.js      # Tabs: Favoritos, Ver después, Vistos
+│   ├── LoginScreen.js          # Login y registro de usuarios
+│   ├── MoviesScreen.js         # Películas con filtros y scroll infinito
+│   ├── SearchScreen.js         # Búsqueda con debounce
+│   └── SeriesScreen.js         # Series con filtros y scroll infinito
 └── services/
-    ├── api.js                # Llamadas a la API de TMDB
-    └── database.js           # Servicio SQLite (usuarios y favoritos)
+    ├── api.js                  # Llamadas a la API de TMDB
+    └── database.js             # SQLite: usuarios, favoritos, watchlist, ratings
 ```
+
+## Base de datos
+
+SQLite se inicializa automáticamente al iniciar la app con cuatro tablas:
+
+- **users** — id, username, email, password
+- **favorites** — user_email, media_id, title, poster_path, rating, media_type
+- **watchlist** — user_email, media_id, title, poster_path, rating, media_type, status ('watchlist' | 'watched')
+- **ratings** — user_email, media_id, media_type, score (1-5)
+
+El usuario `admin` / `123` se crea automáticamente si no existe.
+
+## TMDB API
+
+Endpoints utilizados:
+
+| Endpoint | Uso |
+|----------|-----|
+| `GET /discover/movie` | Películas por año y género |
+| `GET /discover/tv` | Series por año y género |
+| `GET /movie/{id}` | Detalle de película (con credits + videos) |
+| `GET /tv/{id}` | Detalle de serie (con credits + videos) |
+| `GET /genre/movie/list` | Lista de géneros de películas |
+| `GET /genre/tv/list` | Lista de géneros de series |
+| `GET /search/movie` | Búsqueda de películas |
+| `GET /search/tv` | Búsqueda de series |
 
 ## Requisitos previos
 
@@ -79,33 +139,3 @@ npx expo start
 ```
 
 Escanear el QR con Expo Go (Android) o la cámara (iOS).
-
-## Base de datos
-
-SQLite se inicializa automáticamente al iniciar la app con dos tablas:
-
-- **users** — id, username, email, password
-- **favorites** — id, user_email (FK → users.email), media_id, title, poster_path, rating, media_type
-
-El usuario `admin` / `123` se crea automáticamente si no existe.
-
-## TMDB API
-
-Endpoints utilizados:
-
-- `GET /discover/movie` — Películas de 2026 con `vote_count.gte=100`
-- `GET /discover/tv` — Series de 2026 con `vote_count.gte=50`
-
-Ambos ordenados por `vote_average.desc`.
-
-## Commits de referencia
-
-```
-chore: initial project setup with Expo SDK 54
-feat: add TMDB API configuration and service functions
-feat: add SQLite database with users and favorites tables
-feat: add auth context with SQLite-backed login and register
-feat: add MediaCard component with poster, rating and favorite toggle
-feat: add main screens and navigation
-chore: add useMedia custom hook for data fetching
-```
