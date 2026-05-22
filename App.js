@@ -1,6 +1,3 @@
-// Punto de entrada de la aplicación
-// Configura navegación con Stack (Login / MainTabs) y Bottom Tabs (Películas, Series, Favoritos)
-// Protege las rutas principales detrás del estado de autenticación
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -10,11 +7,13 @@ import LoginScreen from './src/screens/LoginScreen';
 import MoviesScreen from './src/screens/MoviesScreen';
 import SeriesScreen from './src/screens/SeriesScreen';
 import FavoritesScreen from './src/screens/FavoritesScreen';
+import AccountScreen from './src/screens/AccountScreen';
+import DetailScreen from './src/screens/DetailScreen';
+import SearchScreen from './src/screens/SearchScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Navegación con pestañas inferiores para las secciones principales de contenido
 function MainTabs() {
   return (
     <Tab.Navigator
@@ -28,17 +27,21 @@ function MainTabs() {
       <Tab.Screen name="Películas" component={MoviesScreen} />
       <Tab.Screen name="Series" component={SeriesScreen} />
       <Tab.Screen name="Favoritos" component={FavoritesScreen} />
+      <Tab.Screen name="Cuenta" component={AccountScreen} />
     </Tab.Navigator>
   );
 }
 
-// Navegación principal: muestra Login si no está autenticado, MainTabs si lo está
 function Navigation() {
   const { isLoggedIn } = useAuth();
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {isLoggedIn ? (
-        <Stack.Screen name="MainTabs" component={MainTabs} />
+        <>
+          <Stack.Screen name="MainTabs" component={MainTabs} />
+          <Stack.Screen name="Detail" component={DetailScreen} />
+          <Stack.Screen name="Search" component={SearchScreen} />
+        </>
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} />
       )}
@@ -46,7 +49,6 @@ function Navigation() {
   );
 }
 
-// Componente raíz: envuelve toda la app con AuthProvider y NavigationContainer
 export default function App() {
   return (
     <AuthProvider>

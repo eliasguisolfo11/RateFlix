@@ -1,10 +1,7 @@
-// Módulo de persistencia local con SQLite (expo-sqlite)
-// Almacena usuarios y favoritos de forma permanente en el dispositivo
 import * as SQLite from 'expo-sqlite';
 
 let db = null;
 
-// Retorna la conexión a la base de datos, creándola si es la primera vez
 async function getDb() {
   if (!db) {
     db = await SQLite.openDatabaseAsync('rateflix.db');
@@ -12,9 +9,6 @@ async function getDb() {
   return db;
 }
 
-// Inicializa las tablas y el usuario por defecto (admin/123)
-// Se ejecuta una sola vez al arrancar la aplicación
-// Incluye migración para agregar columna username en tablas viejas
 export async function initDatabase() {
   const database = await getDb();
   await database.execAsync('PRAGMA foreign_keys = ON;');
@@ -38,11 +32,33 @@ export async function initDatabase() {
       UNIQUE(user_email, media_id),
       FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE
     );
+    CREATE TABLE IF NOT EXISTS watchlist (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_email TEXT NOT NULL,
+      media_id INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      poster_path TEXT,
+      rating REAL DEFAULT 0,
+      media_type TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'watchlist',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_email, media_id),
+      FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE
+    );
+    CREATE TABLE IF NOT EXISTS ratings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_email TEXT NOT NULL,
+      media_id INTEGER NOT NULL,
+      media_type TEXT NOT NULL,
+      score INTEGER NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_email, media_id),
+      FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE
+    );
   `);
-  // Migración: agrega columna username si la tabla fue creada antes de tenerla
   try {
     await database.runAsync('ALTER TABLE users ADD COLUMN username TEXT DEFAULT ""');
-  } catch (_) {} // La columna ya existe, ignorar
+  } catch (_) {}
   const existing = await database.getFirstAsync('SELECT id FROM users WHERE email = ?', 'admin');
   if (!existing) {
     await database.runAsync(
@@ -128,8 +144,6 @@ export async function getFavorites(userEmail) {
   return rows;
 }
 
-// Verifica si un contenido ya está marcado como favorito por el usuario
-// Retorna true/false
 export async function isFavorite(userEmail, mediaId) {
   const database = await getDb();
   const row = await database.getFirstAsync(
@@ -138,4 +152,110 @@ export async function isFavorite(userEmail, mediaId) {
     mediaId
   );
   return !!row;
+}
+
+// ─── Watchlist ───────────────────────────────────────────
+
+export async function addToWatchlist(userEmail, media) {
+  const database = await getDb();
+  try {
+    await database.runAsync(
+      `INSERT OR REPLACE INTO watchlist
+       (user_email, media_id, title, poster_path, rating, media_type, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      userEmail,
+      media.id,
+      media.title || media.name,
+      media.poster_path || '',
+      media.vote_average || 0,
+      media.media_type || 'movie',
+      media.status || 'watchlist'
+    );
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function removeFromWatchlist(userEmail, mediaId) {
+  const database = await getDb();
+  await database.runAsync(
+    'DELETE FROM watchlist WHERE user_email = ? AND media_id = ?',
+    userEmail,
+    mediaId
+  );
+}
+
+export async function updateWatchlistStatus(userEmail, mediaId, status) {
+  const database = await getDb();
+  await database.runAsync(
+    'UPDATE watchlist SET status = ? WHERE user_email = ? AND media_id = ?',
+    status,
+    userEmail,
+    mediaId
+  );
+}
+
+export async function getWatchlist(userEmail, status) {
+  const database = await getDb();
+  if (status) {
+    return await database.getAllAsync(
+      'SELECT * FROM watchlist WHERE user_email = ? AND status = ? ORDER BY created_at DESC',
+      userEmail,
+      status
+    );
+  }
+  return await database.getAllAsync(
+    'SELECT * FROM watchlist WHERE user_email = ? ORDER BY created_at DESC',
+    userEmail
+  );
+}
+
+export async function getWatchlistStatus(userEmail, mediaId) {
+  const database = await getDb();
+  const row = await database.getFirstAsync(
+    'SELECT status FROM watchlist WHERE user_email = ? AND media_id = ?',
+    userEmail,
+    mediaId
+  );
+  return row?.status || null;
+}
+
+// ─── Ratings ─────────────────────────────────────────────
+
+export async function setRating(userEmail, mediaId, mediaType, score) {
+  const database = await getDb();
+  try {
+    await database.runAsync(
+      `INSERT OR REPLACE INTO ratings
+       (user_email, media_id, media_type, score)
+       VALUES (?, ?, ?, ?)`,
+      userEmail,
+      mediaId,
+      mediaType,
+      score
+    );
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function removeRating(userEmail, mediaId) {
+  const database = await getDb();
+  await database.runAsync(
+    'DELETE FROM ratings WHERE user_email = ? AND media_id = ?',
+    userEmail,
+    mediaId
+  );
+}
+
+export async function getRating(userEmail, mediaId) {
+  const database = await getDb();
+  const row = await database.getFirstAsync(
+    'SELECT score FROM ratings WHERE user_email = ? AND media_id = ?',
+    userEmail,
+    mediaId
+  );
+  return row?.score || 0;
 }
